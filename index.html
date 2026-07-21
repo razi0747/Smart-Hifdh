@@ -1,0 +1,568 @@
+<style>
+  :root{
+    --ink:#1c2b26;
+    --parchment:#f6f1e4;
+    --parchment-deep:#ece3cd;
+    --palm:#2f5645;
+    --palm-deep:#1e3a2e;
+    --gold:#b8863b;
+    --gold-soft:#d9b66d;
+    --line:#d9cfb2;
+    --danger:#a4432f;
+    --font-display: 'Amiri', 'Georgia', serif;
+    --font-body: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --font-utility: 'Avenir Next', 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .tk-app{
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #fbf7ea 0%, transparent 60%),
+      var(--parchment);
+    color:var(--ink);
+    min-height:100vh;
+    padding:0 0 60px 0;
+  }
+  .tk-header{
+    background: linear-gradient(160deg, var(--palm-deep), var(--palm) 70%);
+    color:var(--parchment);
+    padding:36px 24px 46px;
+    position:relative;
+    overflow:hidden;
+  }
+  .tk-header::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(135deg, rgba(216,182,109,0.06) 0 2px, transparent 2px 26px);
+    pointer-events:none;
+  }
+  .tk-header-inner{max-width:920px;margin:0 auto;position:relative;}
+  .tk-eyebrow{
+    font-family:var(--font-utility);
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-size:11.5px;
+    color:var(--gold-soft);
+    margin:0 0 8px;
+  }
+  .tk-title{
+    font-family:var(--font-display);
+    font-size:40px;
+    margin:0;
+    letter-spacing:.01em;
+  }
+  .tk-sub{
+    font-family:var(--font-body);
+    font-style:italic;
+    color:#d9e2da;
+    margin:10px 0 0;
+    max-width:560px;
+    line-height:1.55;
+    font-size:15px;
+  }
+  .tk-wrap{max-width:920px;margin:-26px auto 0;padding:0 24px;position:relative;}
+
+  .tk-card{
+    background:#fffdf6;
+    border:1px solid var(--line);
+    border-radius:4px;
+    box-shadow:0 1px 2px rgba(30,58,46,0.06), 0 10px 24px -18px rgba(30,58,46,0.25);
+    padding:22px 24px;
+    margin-bottom:20px;
+  }
+  .tk-card h2{
+    font-family:var(--font-display);
+    font-size:20px;
+    margin:0 0 4px;
+    color:var(--palm-deep);
+  }
+  .tk-card .tk-card-note{
+    font-family:var(--font-utility);
+    font-size:12.5px;
+    color:#7a7160;
+    margin:0 0 16px;
+  }
+
+  .tk-form-row{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;}
+  .tk-field{display:flex; flex-direction:column; gap:6px;}
+  .tk-field label{font-family:var(--font-utility); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#7a7160;}
+  .tk-field select, .tk-field input{
+    font-family:var(--font-utility);
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fffefb;
+    color:var(--ink);
+    min-width:0;
+  }
+  .tk-field select{min-width:190px;}
+  .tk-field input[type=number]{width:90px;}
+  .tk-field input[type=date]{width:150px;}
+  .tk-btn{
+    font-family:var(--font-utility);
+    font-size:13.5px;
+    font-weight:600;
+    letter-spacing:.02em;
+    background:var(--palm);
+    color:#fdfaf0;
+    border:none;
+    padding:11px 18px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .tk-btn:hover{background:var(--palm-deep);}
+  .tk-btn.secondary{background:transparent; color:var(--palm); border:1px solid var(--palm);}
+  .tk-btn.secondary:hover{background:#eef3ee;}
+  .tk-error{color:var(--danger); font-family:var(--font-utility); font-size:12.5px; margin-top:8px;}
+
+  .tk-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:720px){ .tk-grid{grid-template-columns:1fr;} }
+
+  .tk-badge{
+    display:inline-block;
+    font-family:var(--font-utility);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:20px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .b-new{background:#e4efe6; color:var(--palm-deep);}
+  .b-yesterday{background:#fbeedd; color:#8a5a1f;}
+  .b-connection{background:#eae4f2; color:#5a3f7a;}
+  .b-revision{background:#f3e6e2; color:var(--danger);}
+
+  .tk-list{list-style:none; margin:0; padding:0;}
+  .tk-list li{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:9px 0;
+    border-bottom:1px solid #efe9d8;
+    font-size:14.5px;
+  }
+  .tk-list li:last-child{border-bottom:none;}
+  .tk-list .tk-ref{font-family:var(--font-display); font-size:16px;}
+  .tk-list .tk-meta{font-family:var(--font-utility); font-size:11.5px; color:#8a8271;}
+  .tk-empty{font-family:var(--font-utility); font-size:13px; color:#a39a86; font-style:italic; padding:10px 0;}
+
+  .tk-repeat-x{
+    font-family:var(--font-utility);
+    font-weight:700;
+    color:var(--gold);
+    font-size:13px;
+  }
+
+  .tk-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:6px;}
+  @media (max-width:600px){ .tk-stats{grid-template-columns:1fr 1fr;} }
+  .tk-stat{
+    background:var(--parchment-deep);
+    border-radius:4px;
+    padding:14px 14px;
+    text-align:center;
+  }
+  .tk-stat .n{font-family:var(--font-display); font-size:26px; color:var(--palm-deep); display:block;}
+  .tk-stat .l{font-family:var(--font-utility); font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:#7a7160;}
+
+  .tk-surah-chip{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-utility); font-size:12px;
+    background:#eef3ee; color:var(--palm-deep);
+    padding:4px 10px; border-radius:20px; margin:3px 4px 0 0;
+  }
+  .tk-surah-chip.done{background:var(--palm); color:#fdfaf0;}
+  .tk-surah-chip .pct{opacity:.7; font-size:10.5px;}
+
+  table.tk-table{width:100%; border-collapse:collapse; font-family:var(--font-utility); font-size:12.5px;}
+  table.tk-table th{
+    text-align:left; text-transform:uppercase; letter-spacing:.06em; font-size:10px;
+    color:#7a7160; padding:8px 8px; border-bottom:1px solid var(--line);
+  }
+  table.tk-table td{padding:8px 8px; border-bottom:1px solid #f0eadb; vertical-align:top;}
+  table.tk-table tr:last-child td{border-bottom:none;}
+  .tk-table-wrap{overflow-x:auto;}
+
+  .tk-signature{
+    text-align:center;
+    font-family:var(--font-display);
+    font-size:15px;
+    color:var(--gold);
+    letter-spacing:.05em;
+    margin:36px 0 0;
+  }
+</style>
+
+<div class="tk-app">
+  <div class="tk-header">
+    <div class="tk-header-inner">
+      <p class="tk-eyebrow">Daily Ḥifẓ Companion</p>
+      <h1 class="tk-title">Tikrār Tracker</h1>
+      <p class="tk-sub">Log what you memorised today, and let the connection and revision cycles take care of themselves — new memorisation, yesterday's repetition, the connection phase, and old memorisation on its six-day rotation.</p>
+    </div>
+  </div>
+
+  <div class="tk-wrap">
+
+    <div class="tk-card">
+      <h2>Add today's memorisation</h2>
+      <p class="tk-card-note">Enter whatever you memorised — a single āyah or several. It's treated as one "page" in the cycle, however small.</p>
+      <div class="tk-form-row">
+        <div class="tk-field">
+          <label>Date</label>
+          <input type="date" id="tk-date">
+        </div>
+        <div class="tk-field">
+          <label>Sūrah</label>
+          <select id="tk-surah"></select>
+        </div>
+        <div class="tk-field">
+          <label>Āyah from</label>
+          <input type="number" id="tk-ayah-start" min="1" value="1">
+        </div>
+        <div class="tk-field">
+          <label>Āyah to <span id="tk-ayah-max-label" style="text-transform:none;letter-spacing:0;color:#a39a86;"></span></label>
+          <input type="number" id="tk-ayah-end" min="1" value="1">
+        </div>
+        <button class="tk-btn" id="tk-add-btn">Add memorisation</button>
+      </div>
+      <div class="tk-error" id="tk-error" style="display:none;"></div>
+      <div class="tk-form-row" style="margin-top:16px; border-top:1px solid var(--line); padding-top:14px;">
+        <div class="tk-field">
+          <label>Current period</label>
+          <select id="tk-phase">
+            <option value="new">New memorisation (listen ×3, repeat ×40)</option>
+            <option value="mastery">Mastery / consolidation (listen ×1, repeat ×30)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="tk-grid">
+      <div class="tk-card">
+        <h2>Today's new memorisation<span class="tk-badge b-new" id="tk-new-badge">×40</span></h2>
+        <p class="tk-card-note" id="tk-new-steps">Listen ×3 → read tafsīr → memorise → record & check ×3 → repeat from memory ×40.</p>
+        <ul class="tk-list" id="tk-today-list"></ul>
+      </div>
+
+      <div class="tk-card">
+        <h2>Repetition of yesterday<span class="tk-badge b-yesterday">×5</span></h2>
+        <p class="tk-card-note">What you memorised yesterday — recite 5 times from memory, without looking.</p>
+        <ul class="tk-list" id="tk-yesterday-list"></ul>
+      </div>
+
+      <div class="tk-card">
+        <h2>Connection phase<span class="tk-badge b-connection">×1 each</span></h2>
+        <p class="tk-card-note">Everything mastered in the rolling window — recite once each, without looking.</p>
+        <ul class="tk-list" id="tk-connection-list"></ul>
+      </div>
+
+      <div class="tk-card">
+        <h2>Old memorisation — today's revision<span class="tk-badge b-revision" id="tk-circuit-badge">×1</span></h2>
+        <p class="tk-card-note">Today's slice of the six-day revision cycle for everything that has dropped out of connection.</p>
+        <ul class="tk-list" id="tk-revision-list"></ul>
+      </div>
+    </div>
+
+    <div class="tk-card">
+      <h2>Progress</h2>
+      <p class="tk-card-note">Approximate — page counts assume ~15 lines per Mushaf page and will vary by print.</p>
+      <div class="tk-stats">
+        <div class="tk-stat"><span class="n" id="tk-stat-ayat">0</span><span class="l">Āyāt memorised</span></div>
+        <div class="tk-stat"><span class="n" id="tk-stat-pages">0</span><span class="l">Est. pages (of 604)</span></div>
+        <div class="tk-stat"><span class="n" id="tk-stat-surahs">0</span><span class="l">Sūrahs completed</span></div>
+      </div>
+      <div id="tk-surah-chips" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="tk-card">
+      <h2>Memorisation log</h2>
+      <p class="tk-card-note">Every entry, in order, with its phase status.</p>
+      <div class="tk-table-wrap">
+        <table class="tk-table">
+          <thead><tr><th>Date</th><th>Day #</th><th>Sūrah : Āyāt</th><th>Count</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tk-log-body"></tbody>
+        </table>
+      </div>
+      <div class="tk-empty" id="tk-log-empty" style="display:none;">Nothing logged yet — add your first memorisation above.</div>
+    </div>
+
+    <p class="tk-signature">﷽ &nbsp;—&nbsp; every āyah counted is a page begun</p>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const SURAHS = [
+    ["Al-Fatihah",7],["Al-Baqarah",286],["Aal-E-Imran",200],["An-Nisa",176],["Al-Ma'idah",120],
+    ["Al-An'am",165],["Al-A'raf",206],["Al-Anfal",75],["At-Tawbah",129],["Yunus",109],
+    ["Hud",123],["Yusuf",111],["Ar-Ra'd",43],["Ibrahim",52],["Al-Hijr",99],
+    ["An-Nahl",128],["Al-Isra",111],["Al-Kahf",110],["Maryam",98],["Ta-Ha",135],
+    ["Al-Anbiya",112],["Al-Hajj",78],["Al-Mu'minun",118],["An-Nur",64],["Al-Furqan",77],
+    ["Ash-Shu'ara",227],["An-Naml",93],["Al-Qasas",88],["Al-Ankabut",69],["Ar-Rum",60],
+    ["Luqman",34],["As-Sajdah",30],["Al-Ahzab",73],["Saba",54],["Fatir",45],
+    ["Ya-Sin",83],["As-Saffat",182],["Sad",88],["Az-Zumar",75],["Ghafir",85],
+    ["Fussilat",54],["Ash-Shuraa",53],["Az-Zukhruf",89],["Ad-Dukhan",59],["Al-Jathiyah",37],
+    ["Al-Ahqaf",35],["Muhammad",38],["Al-Fath",29],["Al-Hujurat",18],["Qaf",45],
+    ["Adh-Dhariyat",60],["At-Tur",49],["An-Najm",62],["Al-Qamar",55],["Ar-Rahman",78],
+    ["Al-Waqi'ah",96],["Al-Hadid",29],["Al-Mujadila",22],["Al-Hashr",24],["Al-Mumtahanah",13],
+    ["As-Saf",14],["Al-Jumu'ah",11],["Al-Munafiqun",11],["At-Taghabun",18],["At-Talaq",12],
+    ["At-Tahrim",12],["Al-Mulk",30],["Al-Qalam",52],["Al-Haqqah",52],["Al-Ma'arij",44],
+    ["Nuh",28],["Al-Jinn",28],["Al-Muzzammil",20],["Al-Muddathir",56],["Al-Qiyamah",40],
+    ["Al-Insan",31],["Al-Mursalat",50],["An-Naba",40],["An-Nazi'at",46],["Abasa",42],
+    ["At-Takwir",29],["Al-Infitar",19],["Al-Mutaffifin",36],["Al-Inshiqaq",25],["Al-Buruj",22],
+    ["At-Tariq",17],["Al-A'la",19],["Al-Ghashiyah",26],["Al-Fajr",30],["Al-Balad",20],
+    ["Ash-Shams",15],["Al-Layl",21],["Ad-Duhaa",11],["Ash-Sharh",8],["At-Tin",8],
+    ["Al-Alaq",19],["Al-Qadr",5],["Al-Bayyinah",8],["Az-Zalzalah",8],["Al-Adiyat",11],
+    ["Al-Qari'ah",11],["At-Takathur",8],["Al-Asr",3],["Al-Humazah",9],["Al-Fil",5],
+    ["Quraysh",4],["Al-Ma'un",7],["Al-Kawthar",3],["Al-Kafirun",6],["An-Nasr",3],
+    ["Al-Masad",5],["Al-Ikhlas",4],["Al-Falaq",5],["An-Nas",6]
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  function todayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+  function daysBetween(a,b){
+    const da = new Date(a+'T00:00:00'), db = new Date(b+'T00:00:00');
+    return Math.round((db-da)/86400000);
+  }
+  function addDays(dateStr, n){
+    const d = new Date(dateStr+'T00:00:00');
+    d.setDate(d.getDate()+n);
+    return d.toISOString().slice(0,10);
+  }
+
+  // populate surah select
+  const surahSelect = $('tk-surah');
+  SURAHS.forEach((s,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i+1;
+    opt.textContent = (i+1)+'. '+s[0]+' ('+s[1]+' āyāt)';
+    surahSelect.appendChild(opt);
+  });
+  $('tk-date').value = todayStr();
+
+  function updateAyahMax(){
+    const surahNum = parseInt(surahSelect.value,10);
+    const max = SURAHS[surahNum-1][1];
+    $('tk-ayah-start').max = max;
+    $('tk-ayah-end').max = max;
+    $('tk-ayah-max-label').textContent = '(of '+max+')';
+    if(parseInt($('tk-ayah-end').value,10) > max) $('tk-ayah-end').value = max;
+    if(parseInt($('tk-ayah-start').value,10) > max) $('tk-ayah-start').value = max;
+  }
+  surahSelect.addEventListener('change', updateAyahMax);
+  updateAyahMax();
+
+  let entries = [];
+  let phase = 'new';
+  let storageOk = true;
+
+  async function loadEntries(){
+    try{
+      const res = await window.storage.get('tikrar-entries', false);
+      entries = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      entries = [];
+    }
+    try{
+      const p = await window.storage.get('tikrar-phase', false);
+      phase = p && p.value ? p.value : 'new';
+    }catch(e){
+      phase = 'new';
+    }
+    $('tk-phase').value = phase;
+    render();
+  }
+
+  async function saveEntries(){
+    try{
+      await window.storage.set('tikrar-entries', JSON.stringify(entries), false);
+    }catch(e){
+      storageOk = false;
+    }
+  }
+
+  $('tk-phase').addEventListener('change', async ()=>{
+    phase = $('tk-phase').value;
+    try{ await window.storage.set('tikrar-phase', phase, false); }catch(e){}
+    render();
+  });
+
+  function showError(msg){
+    const el = $('tk-error');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  $('tk-add-btn').addEventListener('click', async ()=>{
+    showError('');
+    const date = $('tk-date').value || todayStr();
+    const surahNum = parseInt(surahSelect.value,10);
+    let ayahStart = parseInt($('tk-ayah-start').value,10);
+    let ayahEnd = parseInt($('tk-ayah-end').value,10);
+    const surahAyahCount = SURAHS[surahNum-1][1];
+
+    if(!ayahStart || !ayahEnd || ayahStart<1 || ayahEnd<ayahStart){
+      showError('Enter a valid āyah range (from ≤ to).');
+      return;
+    }
+    // Cap to the sūrah's actual āyah count rather than rejecting the entry.
+    if(ayahStart > surahAyahCount) ayahStart = surahAyahCount;
+    if(ayahEnd > surahAyahCount) ayahEnd = surahAyahCount;
+    const wholeSurah = (ayahStart===1 && ayahEnd===surahAyahCount);
+
+    entries.push({
+      id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+      date, surahNum, ayahStart, ayahEnd,
+      count: ayahEnd-ayahStart+1
+    });
+    entries.sort((a,b)=> a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    await saveEntries();
+    render();
+    if(wholeSurah){
+      const note = document.createElement('div');
+      note.style.cssText = 'font-family:var(--font-utility);font-size:12.5px;color:var(--palm-deep);margin-top:8px;';
+      note.textContent = '✓ Recorded as the complete sūrah of '+SURAHS[surahNum-1][0]+'.';
+      $('tk-error').insertAdjacentElement('afterend', note);
+      setTimeout(()=>note.remove(), 4000);
+    }
+  });
+
+  window.tkDeleteEntry = async function(id){
+    entries = entries.filter(e=>e.id!==id);
+    await saveEntries();
+    render();
+  };
+
+  function refLabel(e){
+    const name = SURAHS[e.surahNum-1][0];
+    return name + ' ' + (e.ayahStart===e.ayahEnd ? e.ayahStart : e.ayahStart+'–'+e.ayahEnd);
+  }
+
+  function render(){
+    if(entries.length===0){
+      $('tk-today-list').innerHTML = '<li class="tk-empty">No memorisation logged yet.</li>';
+      $('tk-yesterday-list').innerHTML = '<li class="tk-empty">Nothing to repeat yet.</li>';
+      $('tk-connection-list').innerHTML = '<li class="tk-empty">Connection phase will build up as you add entries.</li>';
+      $('tk-revision-list').innerHTML = '<li class="tk-empty">No old memorisation yet.</li>';
+      $('tk-log-body').innerHTML = '';
+      $('tk-log-empty').style.display = 'block';
+      $('tk-stat-ayat').textContent = '0';
+      $('tk-stat-pages').textContent = '0';
+      $('tk-stat-surahs').textContent = '0';
+      $('tk-surah-chips').innerHTML = '';
+      return;
+    }
+
+    const firstDate = entries[0].date;
+    const today = todayStr();
+    const yesterday = addDays(today,-1);
+    const N = daysBetween(firstDate, today) + 1; // today's day index (1 = first day of the whole plan)
+
+    // Connection lower bound L, and revision cycle bookkeeping.
+    // Verified against the official Tikrar schedule: for days 1-32 nothing has
+    // dropped out of connection yet (L=1). From day 33 onward, a 6-page/6-unit
+    // block drops out of connection every 6 days: L=7 for days 33-38, L=13 for
+    // days 39-44, L=19 for days 45-50, etc. Connection itself always runs up to
+    // N-2 (today and yesterday have their own separate steps).
+    let L = 1, cycleStart = null, circuitNumber = 0, dayInCycle = 0;
+    if (N >= 33){
+      const b = Math.floor((N-33)/6);
+      L = 7 + 6*b;
+      cycleStart = 33 + 6*b;
+      dayInCycle = N - cycleStart; // 0..5
+      circuitNumber = b + 1;
+    }
+
+    // assign day index to each entry
+    entries.forEach(e=>{ e.dayIndex = daysBetween(firstDate, e.date) + 1; });
+
+    const todaysEntries = entries.filter(e=>e.date===today);
+    const yesterdaysEntries = entries.filter(e=>e.date===yesterday);
+    const connectionEntries = entries.filter(e=> e.dayIndex>=L && e.date!==today && e.date!==yesterday);
+
+    // Old memorisation: everything that has exited connection (dayIndex < L),
+    // kept in memorisation order. Revision splits this ordered list into 6
+    // equal, CONTIGUOUS chunks (not grouped by original day-of-week) and
+    // marches through one chunk per day of the 6-day cycle, restarting from
+    // the oldest chunk whenever a new block drops (matches the official
+    // schedule's "Review" column exactly).
+    const oldEntries = entries.filter(e=> e.dayIndex < L).sort((a,b)=> a.dayIndex-b.dayIndex);
+    let revisionEntries = [];
+    if (N >= 33){
+      const M = oldEntries.length;
+      const chunkStart = Math.floor(M*dayInCycle/6);
+      const chunkEnd = Math.floor(M*(dayInCycle+1)/6);
+      revisionEntries = oldEntries.slice(chunkStart, chunkEnd);
+    }
+
+    // Update today's-new-memorisation badge/description per phase
+    const listenCount = phase==='mastery' ? 1 : 3;
+    const repeatCount = phase==='mastery' ? 30 : 40;
+    $('tk-new-badge').textContent = '×'+repeatCount;
+    $('tk-new-steps').textContent = 'Listen ×'+listenCount+' → read tafsīr → memorise → record & check ×3 → repeat from memory ×'+repeatCount+'.';
+    $('tk-circuit-badge').textContent = circuitNumber>0 ? 'Circuit '+circuitNumber : '×1';
+
+    function listHTML(list, opts){
+      opts = opts||{};
+      if(list.length===0) return '<li class="tk-empty">'+(opts.empty||'Nothing here.')+'</li>';
+      return list.map(e=>{
+        return '<li><span class="tk-ref">'+refLabel(e)+'</span>'+
+          (opts.repeatLabel ? '<span class="tk-repeat-x">'+opts.repeatLabel+'</span>' : '<span class="tk-meta">'+e.date+'</span>')+
+          '</li>';
+      }).join('');
+    }
+
+    $('tk-today-list').innerHTML = listHTML(todaysEntries, {empty:"You haven't logged today's memorisation yet."});
+    $('tk-yesterday-list').innerHTML = listHTML(yesterdaysEntries, {repeatLabel:'× 5', empty:'Nothing memorised yesterday.'});
+    $('tk-connection-list').innerHTML = listHTML(connectionEntries, {repeatLabel:'× 1', empty:'Nothing else currently in the connection window.'});
+    $('tk-revision-list').innerHTML = listHTML(revisionEntries, {repeatLabel:'× 1', empty:'No old memorisation due today.'});
+
+    // log table
+    const logBody = $('tk-log-body');
+    $('tk-log-empty').style.display = 'none';
+    logBody.innerHTML = entries.slice().reverse().map(e=>{
+      let status, cls;
+      if(e.date===today){status="Today's new"; cls='b-new';}
+      else if(e.date===yesterday){status='Repeat of yesterday'; cls='b-yesterday';}
+      else if(e.dayIndex>=L){status='Connection'; cls='b-connection';}
+      else {status='Old memorisation'; cls='b-revision';}
+      return '<tr><td>'+e.date+'</td><td>'+e.dayIndex+'</td><td>'+refLabel(e)+'</td><td>'+e.count+'</td>'+
+        '<td><span class="tk-badge '+cls+'">'+status+'</span></td>'+
+        '<td><button class="tk-btn secondary" style="padding:4px 9px;font-size:11px;" onclick="tkDeleteEntry(\''+e.id+'\')">Remove</button></td></tr>';
+    }).join('');
+
+    // progress
+    const bySurah = {};
+    let totalAyat = 0;
+    entries.forEach(e=>{
+      bySurah[e.surahNum] = (bySurah[e.surahNum]||0) + e.count;
+      totalAyat += e.count;
+    });
+    const estPages = Math.max(1, Math.round(totalAyat/15));
+    let completedCount = 0;
+    const chips = Object.keys(bySurah).sort((a,b)=>a-b).map(num=>{
+      const total = SURAHS[num-1][1];
+      const done = bySurah[num];
+      const isDone = done >= total;
+      if(isDone) completedCount++;
+      const pct = Math.min(100, Math.round(done/total*100));
+      return '<span class="tk-surah-chip'+(isDone?' done':'')+'">'+SURAHS[num-1][0]+' <span class="pct">'+pct+'%</span></span>';
+    }).join('');
+
+    $('tk-stat-ayat').textContent = totalAyat;
+    $('tk-stat-pages').textContent = estPages;
+    $('tk-stat-surahs').textContent = completedCount;
+    $('tk-surah-chips').innerHTML = chips;
+  }
+
+  loadEntries();
+})();
+</script>
