@@ -125,6 +125,21 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
   background:var(--palm-pale); color:var(--palm-deep);
 }
 .tk-step-meta{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:8px; min-height:1em; }
+.tk-reading-summary{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px;
+  margin:0 0 10px;
+}
+.tk-reading-summary > div{
+  min-width:0; padding:8px 9px; border-radius:8px; background:var(--parchment-deep);
+}
+.tk-reading-summary span{
+  display:block; margin-bottom:3px; font-size:9.5px; line-height:1.15; letter-spacing:.035em;
+  text-transform:uppercase; color:var(--ink-soft);
+}
+.tk-reading-summary strong{
+  display:block; overflow-wrap:anywhere;
+  font-size:12px; line-height:1.25; color:var(--palm-deep);
+}
 .tk-step-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
 .tk-step-list li{
   display:flex; align-items:center; justify-content:space-between;
@@ -280,5 +295,3 @@ body.tk-night .level-0{ background:#21343a; }.tk-night .level-1{ background:#205
 @media (max-width:600px){
   .tk-activity-heading{ gap:12px; }.tk-activity-stats div{ min-width:66px; padding:7px; }.tk-activity-stats strong{ font-size:18px; }.tk-heatmap-tip{ display:none; }
 }
-
-

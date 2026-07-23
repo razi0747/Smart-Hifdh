@@ -359,8 +359,9 @@
   // the pages in those spans.  This deliberately counts a partly used page as
   // one page: revision means opening and covering that page, and avoids the
   // serious undercount caused by treating sparse pages as fewer pages.
-  function computeTotalPagesPrecise(list){
-    if(!MUSHAF || !list.length) return MUSHAF ? 0 : null;
+  function mushafPageSpansForList(list){
+    if(!MUSHAF) return null;
+    if(!list.length) return [];
     const spans = [];
     list.forEach(e=>{
       const range = mushafWordRangeForAyahRange(e.surahNum, e.ayahStart, e.ayahEnd);
@@ -377,7 +378,17 @@
       if(last && span[0] <= last[1] + 1) last[1] = Math.max(last[1], span[1]);
       else merged.push(span.slice());
     });
-    return merged.reduce((total, span)=>total + span[1] - span[0] + 1, 0);
+    return merged;
+  }
+  function computeTotalPagesPrecise(list){
+    const spans = mushafPageSpansForList(list);
+    if(spans==null) return spans;
+    return spans.reduce((total, span)=>total + span[1] - span[0] + 1, 0);
+  }
+  function mushafPageRangeLabel(list){
+    const spans = mushafPageSpansForList(list);
+    if(!spans || !spans.length) return '—';
+    return spans.map(span=>span[0]===span[1] ? ''+span[0] : span[0]+'–'+span[1]).join(', ');
   }
   function lastMushafPageForList(list){
     if(!MUSHAF) return null;
@@ -1139,14 +1150,18 @@
       // for these specific portions, not just a raw āyah tally. Uthmani has
       // no real layout backing it, so it still shows āyāt as before.
       const preciseAvailable = isIndopakSelected() && MUSHAF;
-      const connectionEndPage = lastMushafPageForList(plan.connectionEntries);
-      const revisionEndPage = lastMushafPageForList(plan.revisionEntries);
-      const connectionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.connectionEntries))+(connectionEndPage ? ' (through page '+connectionEndPage+')' : '') : connectionAyat+' āyāt';
-      const revisionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.revisionEntries))+(revisionEndPage ? ' (through page '+revisionEndPage+')' : '') : revisionAyat+' āyāt';
-      $('tk-connection-juz').textContent = plan.connectionEntries.length===0 ? ''
-        : connectionJuz+' · '+connectionQty+' · '+estimateDuration(plan.connectionEntries)+' at your current pace'+(preciseAvailable ? ' (based on the real page layout)' : ' (based on your average time per page)');
-      $('tk-revision-juz').textContent = plan.revisionEntries.length===0 ? ''
-        : revisionJuz+' · '+revisionQty+' · '+estimateDuration(plan.revisionEntries)+' at your current pace'+(preciseAvailable ? ' (based on the real page layout)' : ' (based on your average time per page)');
+      function readingSummary(juz, list, ayat){
+        const pages = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(list)) : formatPageAmountEstimated(ayat);
+        const range = preciseAvailable ? mushafPageRangeLabel(list) : 'Unavailable for this edition';
+        return '<div class="tk-reading-summary">'+
+          '<div><span>Ajzā’</span><strong>'+escapeHtml(juz)+'</strong></div>'+
+          '<div><span>Pages to read</span><strong>'+escapeHtml(pages)+'</strong></div>'+
+          '<div><span>Page range</span><strong>'+escapeHtml(range)+'</strong></div>'+
+          '<div><span>Estimated time</span><strong>'+escapeHtml(estimateDuration(list))+'</strong></div>'+
+        '</div>';
+      }
+      $('tk-connection-juz').innerHTML = plan.connectionEntries.length===0 ? '' : readingSummary(connectionJuz, plan.connectionEntries, connectionAyat);
+      $('tk-revision-juz').innerHTML = plan.revisionEntries.length===0 ? '' : readingSummary(revisionJuz, plan.revisionEntries, revisionAyat);
 
       const mostRecent = plan.mostRecent;
       $('tk-current-juz-line').textContent = 'Currently in Juz '+getJuz(mostRecent.surahNum, mostRecent.ayahEnd)+' · '+SURAHS[mostRecent.surahNum-1][0]+' '+mostRecent.ayahEnd;
