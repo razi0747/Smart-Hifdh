@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3f6b4c">
+  <title>Tikrar - Hifdh Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="tk-wrap">
+
+  <div class="tk-header">
+    <h1>Tikrar <span class="ar">تكرار</span></h1>
+    <div class="tk-header-sub">A daily Ḥifẓ (memorisation) tracker — Sabaq · Yesterday · Sabqi · Dhor</div>
+  </div>
+
+  <!-- Day navigator + settings -->
+  <div class="tk-card">
+    <div class="tk-daybar">
+      <div class="tk-field">
+        <label>Viewing day</label>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="tk-icon-btn" id="tk-date-prev" title="Previous day">‹</button>
+          <input type="date" id="tk-date">
+          <button class="tk-icon-btn" id="tk-date-next" title="Next day">›</button>
+        </div>
+      </div>
+      <div class="tk-field">
+        <label>Phase</label>
+        <select id="tk-phase">
+          <option value="new">New memorisation</option>
+          <option value="mastery">Mastery</option>
+        </select>
+      </div>
+      <div class="tk-field">
+        <label>Mushaf edition</label>
+        <select id="tk-mushaf-type">
+          <option value="indopak15">Indo-Pak 15-line</option>
+          <option value="uthmani15">Uthmani (Madani) 15-line</option>
+        </select>
+      </div>
+      <div class="tk-field">
+        <label>Pace (sec / page)</label>
+        <input type="number" id="tk-pace" min="10" step="5" style="width:78px;">
+      </div>
+      <button class="tk-btn secondary" id="tk-theme-toggle" type="button">Night mode</button>
+    </div>
+  </div>
+
+  <!-- Add entry -->
+  <div class="tk-card">
+    <h2>Log memorisation</h2>
+    <p class="tk-card-sub">Record the āyāt you memorised on the selected day.</p>
+    <div class="tk-addform">
+      <div class="tk-field">
+        <label>Sūrah</label>
+        <select id="tk-surah"></select>
+      </div>
+      <div class="tk-field">
+        <label>From āyah</label>
+        <input type="number" id="tk-ayah-start" min="1" value="1">
+      </div>
+      <div class="tk-field">
+        <label>To āyah</label>
+        <input type="number" id="tk-ayah-end" min="1" value="1">
+      </div>
+      <span id="tk-ayah-max-label"></span>
+      <button class="tk-btn" id="tk-add-btn">Add entry</button>
+    </div>
+    <div class="tk-error" id="tk-error"></div>
+  </div>
+
+  <!-- Summary -->
+  <div class="tk-card" id="tk-summary-card">
+    <p>Plan</p>
+    <span id="tk-summary-line"></span>
+    <span id="tk-current-juz-line"></span>
+    <span id="tk-hifz-dates"></span>
+  </div>
+
+  <!-- The four Tikrar steps -->
+  <div class="tk-grid-4">
+    <div class="tk-card tk-step-card step-sabaq">
+      <h3>Sabaq <span class="tk-step-badge" id="tk-new-badge">×40</span></h3>
+      <span class="tk-step-meta" id="tk-new-steps"></span>
+      <ul class="tk-step-list" id="tk-today-list"></ul>
+    </div>
+    <div class="tk-card tk-step-card step-yesterday">
+      <h3>Yesterday</h3>
+      <span class="tk-step-meta">Repeat yesterday's new portion.</span>
+      <ul class="tk-step-list" id="tk-yesterday-list"></ul>
+    </div>
+    <div class="tk-card tk-step-card step-sabqi">
+      <h3>Sabqi <span class="tk-step-badge" id="tk-circuit-badge">×1</span><button class="tk-btn secondary tk-step-toggle" onclick="tkToggleCollapse('tk-sabqi-body',this)">Hide</button></h3>
+      <div id="tk-sabqi-body"><span class="tk-step-meta" id="tk-connection-juz"></span>
+      <ul class="tk-step-list" id="tk-connection-list"></ul></div>
+    </div>
+    <div class="tk-card tk-step-card step-dhor">
+      <h3>Dhor <button class="tk-btn secondary tk-step-toggle" onclick="tkToggleCollapse('tk-dhor-body',this)">Hide</button></h3>
+      <div id="tk-dhor-body"><span class="tk-step-meta" id="tk-revision-juz"></span>
+      <ul class="tk-step-list" id="tk-revision-list"></ul></div>
+    </div>
+  </div>
+
+  <!-- Today's checklist -->
+  <div class="tk-card">
+    <h2>Today's checklist</h2>
+    <p class="tk-card-sub">Track whether each step was completed, and leave yourself a note.</p>
+    <div class="tk-checklist">
+      <label><input type="checkbox" id="tk-check-new"> Sabaq done</label>
+      <label><input type="checkbox" id="tk-check-yesterday"> Yesterday ×5 done</label>
+      <label><input type="checkbox" id="tk-check-connection"> Sabqi done</label>
+      <label><input type="checkbox" id="tk-check-revision"> Dhor done</label>
+      <label><input type="checkbox" id="tk-check-missed"> No new portion today</label>
+    </div>
+    <textarea id="tk-day-note" placeholder="Notes for today…"></textarea>
+  </div>
+
+  <!-- Progress -->
+  <div class="tk-grid-2">
+    <div class="tk-card">
+      <h2>Progress</h2>
+      <p class="tk-card-sub" id="tk-progress-note"></p>
+      <div class="tk-stat-grid">
+        <div class="tk-stat"><b id="tk-stat-ayat">0</b><span>Āyāt memorised</span></div>
+        <div class="tk-stat"><b id="tk-stat-pages">0</b><span id="tk-stat-pages-label">Pages</span></div>
+        <div class="tk-stat"><b id="tk-stat-surahs">0</b><span>Sūrahs complete</span></div>
+      </div>
+      <div class="tk-surah-chips" id="tk-surah-chips"></div>
+      <p class="tk-note-small" id="tk-pagecalc-note"></p>
+    </div>
+    <div class="tk-card">
+      <h2>Completion estimates</h2>
+      <div id="tk-estimates-body"></div>
+      <p class="tk-note-small" id="tk-pace-note"></p>
+    </div>
+  </div>
+
+  <!-- Activity heatmap -->
+  <section class="tk-card tk-activity-card" aria-labelledby="tk-activity-title">
+    <div class="tk-activity-heading">
+      <div>
+        <p class="tk-eyebrow">Your rhythm</p>
+        <h2 id="tk-activity-title">Memorisation activity</h2>
+        <p class="tk-card-sub">A year of your hifdh work at a glance.</p>
+      </div>
+      <div class="tk-activity-stats" aria-label="Activity summary">
+        <div><strong id="tk-activity-streak">0</strong><span>day streak</span></div>
+        <div><strong id="tk-activity-days">0</strong><span>active days</span></div>
+      </div>
+    </div>
+    <div class="tk-heatmap-scroll">
+      <div class="tk-heatmap" id="tk-heatmap" role="grid" aria-label="Yearly memorisation activity"></div>
+    </div>
+    <div class="tk-heatmap-footer">
+      <span>Less</span><span class="tk-heat-key level-0"></span><span class="tk-heat-key level-1"></span><span class="tk-heat-key level-2"></span><span class="tk-heat-key level-3"></span><span class="tk-heat-key level-4"></span><span>More</span>
+      <span class="tk-heatmap-tip">Hover or tap a day for details</span>
+    </div>
+    <div class="tk-heatmap-tooltip" id="tk-heatmap-tooltip" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- Juz map -->
+  <div class="tk-card">
+    <h2>Juz map</h2>
+    <p class="tk-card-sub">Coverage of each juz, coloured by Tikrar stage.</p>
+    <div id="tk-map-body"></div>
+    <div class="tk-map-legend" id="tk-map-legend"></div>
+  </div>
+
+  <!-- Mushaf viewer -->
+  <div class="tk-card">
+    <h2>Mushaf page viewer <span class="tk-mushaf-status-badge" id="tk-mushaf-status-badge">loading layout…</span></h2>
+    <p class="tk-card-sub">Browse the real Indo-Pak 15-line pages, highlighted by Tikrar stage.</p>
+    <div class="tk-mushaf-unavailable" id="tk-mushaf-unavailable">The page viewer is available for the Indo-Pak 15-line edition — switch editions above to use it.</div>
+    <div id="tk-mushaf-body-wrap">
+      <div class="tk-mushaf-toolbar">
+        <button class="tk-btn secondary" id="tk-mushaf-prev">‹ Prev</button>
+        <input type="number" id="tk-mushaf-page-input" min="1" max="610" value="1">
+        <button class="tk-btn secondary" id="tk-mushaf-next">Next ›</button>
+        <button class="tk-btn secondary" id="tk-mushaf-current">Go to current page</button>
+        <button class="tk-btn secondary" id="tk-mushaf-sabaq">Go to Sabaq</button>
+        <span id="tk-mushaf-page-caption"></span>
+      </div>
+      <div class="tk-mushaf-page" id="tk-mushaf-page-render"></div>
+      <div class="tk-map-legend" id="tk-mushaf-legend"></div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="tk-card">
+    <h2>Insights</h2>
+    <p class="tk-card-sub">Sūrahs completed, ranked by how long they took.</p>
+    <div id="tk-insight-longest"></div>
+  </div>
+
+  <!-- Log -->
+  <div class="tk-card">
+    <h2>Memorisation log</h2>
+    <div class="tk-log-controls">
+      <select id="tk-log-sort">
+        <option value="desc">Newest first</option>
+        <option value="asc">Oldest first</option>
+      </select>
+    </div>
+    <p class="tk-empty" id="tk-log-empty">Nothing logged yet.</p>
+    <table class="tk-log-table">
+      <thead>
+        <tr><th>Date</th><th>Day</th><th>Reference</th><th>Āyāt</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody id="tk-log-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer / data controls -->
+  <div class="tk-footer">
+    <button class="tk-btn secondary" id="tk-export">Export backup</button>
+    <button class="tk-btn secondary" id="tk-import">Import backup</button>
+    <input type="file" id="tk-import-file" accept="application/json" style="display:none;">
+    <button class="tk-btn secondary" id="tk-reset-demo">Reset to demo data</button>
+    <button class="tk-btn danger" id="tk-start-fresh">Start fresh</button>
+  </div>
+
+</div>
+
+
+<script src="app.js" defer></script>
+</body>
+</html>
+
+
