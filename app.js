@@ -1,4 +1,3 @@
-
 (function(){
 
   // GitHub Pages has no built-in storage API, so use browser storage there.
@@ -247,15 +246,28 @@
   }
   // Seconds-per-āyah derived from the user's own seconds-per-page pace and
   // the chosen edition's average āyah density (total āyāt / total pages).
-  // (Used for time estimates regardless of edition; page *counts* below use
-  // the real layout for Indo-Pak instead of this average.)
+  // This is only a FALLBACK now — used for Uthmani (no real layout data
+  // exists for it) or if the Indo-Pak layout hasn't finished loading yet.
   function secondsPerAyah(){
     const pace = parseFloat($('tk-pace').value) || 75;
     const avgAyahPerPage = TOTAL_AYAT_QURAN / currentMushaf().totalPages;
     return pace / avgAyahPerPage;
   }
-  function estimateDuration(ayahCount){
-    const totalSeconds = Math.round(ayahCount * secondsPerAyah());
+  // Time estimate for a list of entries (e.g. today's Sabqi or Dhor). When
+  // Indo-Pak is selected and the real page layout has loaded, this uses the
+  // EXACT page count for those specific portions (via computeTotalPagesPrecise)
+  // multiplied directly by the user's seconds-per-page pace — not an āyah
+  // average. Falls back to the averaged estimate otherwise.
+  function estimateDuration(list){
+    const pace = parseFloat($('tk-pace').value) || 75;
+    let pages = (isIndopakSelected() && MUSHAF) ? computeTotalPagesPrecise(list) : null;
+    let totalSeconds;
+    if(pages != null){
+      totalSeconds = Math.round(pages * pace);
+    } else {
+      const ayahCount = list.reduce((s,e)=>s+e.count,0);
+      totalSeconds = Math.round(ayahCount * secondsPerAyah());
+    }
     if(totalSeconds < 60) return '~'+Math.max(totalSeconds,5)+' sec';
     const mins = Math.round(totalSeconds/60);
     return '~'+mins+' min';
@@ -1095,10 +1107,16 @@
       const revisionAyat = plan.revisionEntries.reduce((s,e)=>s+e.count,0);
       const connectionJuz = juzRangeLabel(plan.connectionEntries);
       const revisionJuz = juzRangeLabel(plan.revisionEntries);
+      // With the real Indo-Pak layout loaded we can report exact page counts
+      // for these specific portions, not just a raw āyah tally. Uthmani has
+      // no real layout backing it, so it still shows āyāt as before.
+      const preciseAvailable = isIndopakSelected() && MUSHAF;
+      const connectionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.connectionEntries)) : connectionAyat+' āyāt';
+      const revisionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.revisionEntries)) : revisionAyat+' āyāt';
       $('tk-connection-juz').textContent = plan.connectionEntries.length===0 ? ''
-        : connectionJuz+' · '+connectionAyat+' āyāt · '+estimateDuration(connectionAyat)+' at your current pace (based on your average time per page)';
+        : connectionJuz+' · '+connectionQty+' · '+estimateDuration(plan.connectionEntries)+' at your current pace'+(preciseAvailable ? ' (based on the real page layout)' : ' (based on your average time per page)');
       $('tk-revision-juz').textContent = plan.revisionEntries.length===0 ? ''
-        : revisionJuz+' · '+revisionAyat+' āyāt · '+estimateDuration(revisionAyat)+' at your current pace (based on your average time per page)';
+        : revisionJuz+' · '+revisionQty+' · '+estimateDuration(plan.revisionEntries)+' at your current pace'+(preciseAvailable ? ' (based on the real page layout)' : ' (based on your average time per page)');
 
       const mostRecent = plan.mostRecent;
       $('tk-current-juz-line').textContent = 'Currently in Juz '+getJuz(mostRecent.surahNum, mostRecent.ayahEnd)+' · '+SURAHS[mostRecent.surahNum-1][0]+' '+mostRecent.ayahEnd;
@@ -1208,5 +1226,3 @@
   loadEntries();
   loadMushafData();
 })();
-
-
