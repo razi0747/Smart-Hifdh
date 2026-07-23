@@ -336,9 +336,10 @@
     }
     return null;
   }
-  // Exact fractional page count for a given ayah range, based on real word
-  // density per page (not an average) — e.g. a short āyah on a crowded page
-  // reads as a smaller fraction than the same word count on a sparse page.
+  // Text-density fraction for a single logged range.  This is useful in the
+  // log, but it must not be used for a Sabqi/Dhor estimate: adding word
+  // fractions answers "how much text?", not "which physical pages will I
+  // have to revise?".
   function preciseEntryPages(surahNum, ayahStart, ayahEnd){
     const range = mushafWordRangeForAyahRange(surahNum, ayahStart, ayahEnd);
     if(!range) return null;
@@ -353,14 +354,41 @@
     }
     return total;
   }
+  // Exact physical-page coverage for a collection of portions.  We map every
+  // portion to its first and last real mushaf page, merge overlaps, then count
+  // the pages in those spans.  This deliberately counts a partly used page as
+  // one page: revision means opening and covering that page, and avoids the
+  // serious undercount caused by treating sparse pages as fewer pages.
   function computeTotalPagesPrecise(list){
-    if(!MUSHAF) return null;
-    let total = 0;
+    if(!MUSHAF || !list.length) return MUSHAF ? 0 : null;
+    const spans = [];
     list.forEach(e=>{
-      const p = preciseEntryPages(e.surahNum, e.ayahStart, e.ayahEnd);
-      if(p!=null) total += p;
+      const range = mushafWordRangeForAyahRange(e.surahNum, e.ayahStart, e.ayahEnd);
+      if(!range) return;
+      const startPage = mushafWordToPage(range[0]);
+      const endPage = mushafWordToPage(range[1]);
+      if(startPage!=null && endPage!=null) spans.push([startPage, endPage]);
     });
-    return total;
+    if(!spans.length) return null;
+    spans.sort((a,b)=>a[0]-b[0] || a[1]-b[1]);
+    const merged = [];
+    spans.forEach(span=>{
+      const last = merged[merged.length-1];
+      if(last && span[0] <= last[1] + 1) last[1] = Math.max(last[1], span[1]);
+      else merged.push(span.slice());
+    });
+    return merged.reduce((total, span)=>total + span[1] - span[0] + 1, 0);
+  }
+  function lastMushafPageForList(list){
+    if(!MUSHAF) return null;
+    let lastPage = null;
+    list.forEach(e=>{
+      const range = mushafWordRangeForAyahRange(e.surahNum, e.ayahStart, e.ayahEnd);
+      if(!range) return;
+      const page = mushafWordToPage(range[1]);
+      if(page!=null) lastPage = Math.max(lastPage || 0, page);
+    });
+    return lastPage;
   }
 
   // ---- Page-fraction formatting ("⅕ of a page", "1¾ pages"...) ----
@@ -1111,8 +1139,10 @@
       // for these specific portions, not just a raw āyah tally. Uthmani has
       // no real layout backing it, so it still shows āyāt as before.
       const preciseAvailable = isIndopakSelected() && MUSHAF;
-      const connectionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.connectionEntries)) : connectionAyat+' āyāt';
-      const revisionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.revisionEntries)) : revisionAyat+' āyāt';
+      const connectionEndPage = lastMushafPageForList(plan.connectionEntries);
+      const revisionEndPage = lastMushafPageForList(plan.revisionEntries);
+      const connectionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.connectionEntries))+(connectionEndPage ? ' (through page '+connectionEndPage+')' : '') : connectionAyat+' āyāt';
+      const revisionQty = preciseAvailable ? formatPagesValue(computeTotalPagesPrecise(plan.revisionEntries))+(revisionEndPage ? ' (through page '+revisionEndPage+')' : '') : revisionAyat+' āyāt';
       $('tk-connection-juz').textContent = plan.connectionEntries.length===0 ? ''
         : connectionJuz+' · '+connectionQty+' · '+estimateDuration(plan.connectionEntries)+' at your current pace'+(preciseAvailable ? ' (based on the real page layout)' : ' (based on your average time per page)');
       $('tk-revision-juz').textContent = plan.revisionEntries.length===0 ? ''
