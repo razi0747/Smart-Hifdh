@@ -234,6 +234,31 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
 /* ---- Footer ---- */
 .tk-footer{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; }
 
+.tk-step-card.step-sabaq{ border-top:4px solid #d69a22; }
+.tk-step-card.step-yesterday{ border-top:4px solid #d66c3b; }
+.tk-step-card.step-sabqi{ border-top:4px solid #337e96; }
+.tk-step-card.step-dhor{ border-top:4px solid #8454a5; }
+.tk-step-toggle{ float:right; padding:4px 8px; font-size:11px; }
+
+/* Night mode: higher contrast with distinct, calm neon stage colours. */
+body.tk-night{ background:#081014; color:#dbeee9; }
+body.tk-night .tk-wrap{ color:#dbeee9; }
+body.tk-night .tk-card{ background:#101b20; border-color:#29424a; box-shadow:0 8px 28px rgba(0,0,0,.34); }
+body.tk-night .tk-header{ background:linear-gradient(135deg,#071d20,#102432); }
+body.tk-night .tk-header-sub, body.tk-night .tk-card-sub, body.tk-night .tk-note-small, body.tk-night label{ color:#a9c3bd; }
+body.tk-night h1, body.tk-night h2, body.tk-night h3, body.tk-night .tk-ref{ color:#e7fff8; }
+body.tk-night input, body.tk-night select, body.tk-night textarea{ background:#0a1418; color:#e7fff8; border-color:#36535a; }
+body.tk-night .tk-btn.secondary{ color:#80f3d0; border-color:#4bc8aa; }
+body.tk-night .b-new{ background:#5a3d08; color:#ffd66c; }
+body.tk-night .b-yesterday{ background:#5a2416; color:#ffad83; }
+body.tk-night .b-connection{ background:#123d4c; color:#76dcff; }
+body.tk-night .b-revision{ background:#33204c; color:#d3a6ff; }
+body.tk-night .tk-step-card.step-sabaq{ border-color:#ffd166; }
+body.tk-night .tk-step-card.step-yesterday{ border-color:#ff8a65; }
+body.tk-night .tk-step-card.step-sabqi{ border-color:#52d9ff; }
+body.tk-night .tk-step-card.step-dhor{ border-color:#c28cff; }
+body.tk-night .tk-mushaf-page{ background:#0c171b; color:#dbeee9; }
+
 .tk-collapsed{ display:none !important; }
 </style>
 </head>
@@ -274,6 +299,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
         <label>Pace (sec / page)</label>
         <input type="number" id="tk-pace" min="10" step="5" style="width:78px;">
       </div>
+      <button class="tk-btn secondary" id="tk-theme-toggle" type="button">Night mode</button>
     </div>
   </div>
 
@@ -294,7 +320,15 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
         <label>To āyah</label>
         <input type="number" id="tk-ayah-end" min="1" value="1">
       </div>
+      <div class="tk-field">
+        <label>Target size</label>
+        <select id="tk-portion-size">
+          <option value="0.25">¼ page</option><option value="0.4">⅖ page</option><option value="0.6">⅗ page</option><option value="0.8">⅘ page</option>
+          <option value="1">1 page</option><option value="1.2">1⅕ pages</option><option value="1.4">1⅖ pages</option><option value="1.6">1⅗ pages</option><option value="1.8">1⅘ pages</option><option value="2">2 pages</option>
+        </select>
+      </div>
       <span id="tk-ayah-max-label"></span>
+      <span id="tk-portion-preview" class="tk-note-small"></span>
       <button class="tk-btn" id="tk-add-btn">Add entry</button>
     </div>
     <div class="tk-error" id="tk-error"></div>
@@ -310,25 +344,25 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
 
   <!-- The four Tikrar steps -->
   <div class="tk-grid-4">
-    <div class="tk-card tk-step-card">
+    <div class="tk-card tk-step-card step-sabaq">
       <h3>Sabaq <span class="tk-step-badge" id="tk-new-badge">×40</span></h3>
       <span class="tk-step-meta" id="tk-new-steps"></span>
       <ul class="tk-step-list" id="tk-today-list"></ul>
     </div>
-    <div class="tk-card tk-step-card">
+    <div class="tk-card tk-step-card step-yesterday">
       <h3>Yesterday</h3>
       <span class="tk-step-meta">Repeat yesterday's new portion.</span>
       <ul class="tk-step-list" id="tk-yesterday-list"></ul>
     </div>
-    <div class="tk-card tk-step-card">
-      <h3>Sabqi <span class="tk-step-badge" id="tk-circuit-badge">×1</span></h3>
-      <span class="tk-step-meta" id="tk-connection-juz"></span>
-      <ul class="tk-step-list" id="tk-connection-list"></ul>
+    <div class="tk-card tk-step-card step-sabqi">
+      <h3>Sabqi <span class="tk-step-badge" id="tk-circuit-badge">×1</span><button class="tk-btn secondary tk-step-toggle" onclick="tkToggleCollapse('tk-sabqi-body',this)">Hide</button></h3>
+      <div id="tk-sabqi-body"><span class="tk-step-meta" id="tk-connection-juz"></span>
+      <ul class="tk-step-list" id="tk-connection-list"></ul></div>
     </div>
-    <div class="tk-card tk-step-card">
-      <h3>Dhor</h3>
-      <span class="tk-step-meta" id="tk-revision-juz"></span>
-      <ul class="tk-step-list" id="tk-revision-list"></ul>
+    <div class="tk-card tk-step-card step-dhor">
+      <h3>Dhor <button class="tk-btn secondary tk-step-toggle" onclick="tkToggleCollapse('tk-dhor-body',this)">Hide</button></h3>
+      <div id="tk-dhor-body"><span class="tk-step-meta" id="tk-revision-juz"></span>
+      <ul class="tk-step-list" id="tk-revision-list"></ul></div>
     </div>
   </div>
 
@@ -385,6 +419,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
         <input type="number" id="tk-mushaf-page-input" min="1" max="610" value="1">
         <button class="tk-btn secondary" id="tk-mushaf-next">Next ›</button>
         <button class="tk-btn secondary" id="tk-mushaf-current">Go to current page</button>
+        <button class="tk-btn secondary" id="tk-mushaf-sabaq">Go to Sabaq</button>
         <span id="tk-mushaf-page-caption"></span>
       </div>
       <div class="tk-mushaf-page" id="tk-mushaf-page-render"></div>
@@ -498,6 +533,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
         ayahWordStart: prefix,
         words: words
       };
+      updatePortionPreview();
     }catch(e){
       console.error('Failed to load real mushaf layout, falling back to estimates.', e);
       MUSHAF = null;
@@ -581,8 +617,11 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     $('tk-ayah-max-label').textContent = '(of '+max+')';
     if(parseInt($('tk-ayah-end').value,10) > max) $('tk-ayah-end').value = max;
     if(parseInt($('tk-ayah-start').value,10) > max) $('tk-ayah-start').value = max;
+    updatePortionPreview();
   }
   surahSelect.addEventListener('change', updateAyahMax);
+  $('tk-ayah-start').addEventListener('change', updatePortionPreview);
+  $('tk-portion-size').addEventListener('change', updatePortionPreview);
   updateAyahMax();
 
   // Standard Juz starting points: [juz number, surah, ayah]. Juz boundaries
@@ -662,12 +701,15 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     return e>=s ? e-s+1 : 0;
   }
   function memorizedInRange(list, rS, rE){
-    let sum = 0;
-    list.forEach(e=>{
-      const s = absIndex(e.surahNum,e.ayahStart), en = absIndex(e.surahNum,e.ayahEnd);
-      sum += overlapLen(s,en,rS,rE);
+    const ranges = list.map(e=>[Math.max(rS,absIndex(e.surahNum,e.ayahStart)), Math.min(rE,absIndex(e.surahNum,e.ayahEnd))])
+      .filter(r=>r[0]<=r[1]).sort((a,b)=>a[0]-b[0]);
+    const merged = [];
+    ranges.forEach(r=>{
+      const last = merged[merged.length-1];
+      if(last && r[0]<=last[1]+1) last[1]=Math.max(last[1],r[1]);
+      else merged.push(r);
     });
-    return sum;
+    return merged.reduce((sum,r)=>sum+r[1]-r[0]+1,0);
   }
   function surahDoneCount(list, surahNum){
     const ranges = list.filter(e=>e.surahNum===surahNum).map(e=>[e.ayahStart,e.ayahEnd]).sort((a,b)=>a[0]-b[0]);
@@ -726,10 +768,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
   }
 
   // ---- Page-fraction formatting ("⅕ of a page", "1¾ pages"...) ----
-  const FRACTIONS = [
-    [1/8,'⅛'],[1/6,'⅙'],[1/5,'⅕'],[1/4,'¼'],[1/3,'⅓'],[2/5,'⅖'],[1/2,'½'],
-    [3/5,'⅗'],[5/8,'⅝'],[2/3,'⅔'],[3/4,'¾'],[4/5,'⅘'],[7/8,'⅞']
-  ];
+  const FRACTIONS = [[1/5,'⅕'],[1/4,'¼'],[2/5,'⅖'],[1/2,'½'],[3/5,'⅗'],[3/4,'¾'],[4/5,'⅘']];
   function nearestFraction(frac){
     let best = [0,''], bestDiff = frac;
     FRACTIONS.forEach(([v,sym])=>{
@@ -771,6 +810,47 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     return formatPageAmountEstimated(e.count);
   }
 
+  // Select an ayah end that is as close as possible to the chosen practical
+  // Tikrar portion. Indo-Pak uses the real page word layout; other editions
+  // fall back to their stated page count.
+  function updatePortionPreview(){
+    const preview = $('tk-portion-preview');
+    if(!preview || !surahSelect) return;
+    const surahNum = parseInt(surahSelect.value,10);
+    const start = parseInt($('tk-ayah-start').value,10);
+    const target = parseFloat($('tk-portion-size').value) || 1;
+    if(!surahNum || !start) return;
+    const max = SURAHS[surahNum-1][1];
+    let bestEnd = start, bestDiff = Infinity;
+    for(let end=start; end<=max; end++){
+      const pages = (isIndopakSelected() && MUSHAF)
+        ? preciseEntryPages(surahNum,start,end)
+        : (end-start+1)/(6236/610);
+      const diff = Math.abs(pages-target);
+      if(diff < bestDiff){ bestDiff=diff; bestEnd=end; }
+      if(pages >= target && diff > bestDiff) break;
+    }
+    $('tk-ayah-end').value = bestEnd;
+    const selected = {surahNum, ayahStart:start, ayahEnd:bestEnd, count:bestEnd-start+1};
+    // This function runs once before the later page constants initialise.
+    // Use a safe estimate then replace it with the exact layout result on load.
+    preview.textContent = MUSHAF
+      ? '≈ '+formatEntryPageAmount(selected)+' · '+selected.count+' āyāt'
+      : '≈ '+target+' page target · '+selected.count+' āyāt';
+  }
+
+  function mergeForDisplay(list){
+    const ordered = list.slice().sort(mushafOrder);
+    return ordered.reduce((merged,e)=>{
+      const last = merged[merged.length-1];
+      if(last && last.surahNum===e.surahNum && e.ayahStart<=last.ayahEnd+1){
+        last.ayahEnd = Math.max(last.ayahEnd,e.ayahEnd);
+        last.count = last.ayahEnd-last.ayahStart+1;
+      } else merged.push({...e});
+      return merged;
+    }, []);
+  }
+
   // ---- Pure day-plan computation, reusable for the viewed day AND for
   // historical lookups (insights, log status). ----
   function computeDayPlan(viewDate, allEntries){
@@ -798,6 +878,9 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     const oldEntries = visibleEntries.filter(e=> e.dayIndex < L).sort(mushafOrder);
     let revisionEntries = [];
     if(N >= 33){
+      // Faithful schedule behaviour: the old material remains in its original
+      // Mushaf-order sequence and is divided into six consecutive daily parts.
+      // Do not rebalance it by page weight; that would change the program.
       const M = oldEntries.length;
       const chunkStart = Math.floor(M*dayInCycle/6);
       const chunkEnd = Math.floor(M*(dayInCycle+1)/6);
@@ -852,6 +935,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
   let phase = 'new';
   let storageOk = true;
   let dayRecords = {};
+  let nightMode = false;
   // The plan follows the selected date so you can safely log ahead or revisit
   // a previous day without future entries being folded into Connection.
   let planDate = todayStr();
@@ -877,6 +961,16 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     const collapsed = el.classList.toggle('tk-collapsed');
     btn.textContent = collapsed ? 'Show' : 'Hide';
   };
+
+  function applyTheme(){
+    document.body.classList.toggle('tk-night', nightMode);
+    $('tk-theme-toggle').textContent = nightMode ? 'Day mode' : 'Night mode';
+  }
+  $('tk-theme-toggle').addEventListener('click', async ()=>{
+    nightMode = !nightMode;
+    applyTheme();
+    try{ await window.storage.set('tikrar-demo-theme', nightMode ? 'night' : 'day', false); }catch(e){}
+  });
 
   async function loadEntries(){
     try{
@@ -918,6 +1012,11 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     }catch(e){
       $('tk-pace').value = '75';
     }
+    try{
+      const savedTheme = await window.storage.get('tikrar-demo-theme', false);
+      nightMode = savedTheme && savedTheme.value === 'night';
+    }catch(e){ nightMode = false; }
+    applyTheme();
     $('tk-phase').value = phase;
     planDate = $('tk-date').value || todayStr();
     renderMapLegend();
@@ -945,6 +1044,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
   });
   $('tk-mushaf-type').addEventListener('change', async ()=>{
     try{ await window.storage.set('tikrar-demo-mushaf', $('tk-mushaf-type').value, false); }catch(e){}
+    updatePortionPreview();
     render();
   });
   $('tk-pace').addEventListener('change', async ()=>{
@@ -988,6 +1088,14 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
     }
     if(ayahStart > surahAyahCount) ayahStart = surahAyahCount;
     if(ayahEnd > surahAyahCount) ayahEnd = surahAyahCount;
+    const enteredPortion = {surahNum, ayahStart, ayahEnd, count:ayahEnd-ayahStart+1};
+    const portionPages = (isIndopakSelected() && MUSHAF)
+      ? preciseEntryPages(surahNum, ayahStart, ayahEnd)
+      : enteredPortion.count/(TOTAL_AYAT_QURAN/currentMushaf().totalPages);
+    if(portionPages < 0.20 || portionPages > 2.10){
+      showError('Please log a practical portion between about ¼ and 2 pages. Use the Target size menu to choose it precisely.');
+      return;
+    }
     const overlaps = entries.some(e=> e.surahNum===surahNum && ayahStart<=e.ayahEnd && ayahEnd>=e.ayahStart);
     if(overlaps){
       showError('That āyah range overlaps an existing memorisation entry. Remove or correct the earlier entry instead of counting it twice.');
@@ -1244,6 +1352,13 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
       }
     }
   });
+  $('tk-mushaf-sabaq').addEventListener('click', ()=>{
+    if(currentPlanCache && currentPlanCache.todaysEntries.length && MUSHAF){
+      const e = currentPlanCache.todaysEntries[0];
+      const range = mushafWordRangeForAyahRange(e.surahNum, e.ayahStart, e.ayahStart);
+      if(range){ const pg = mushafWordToPage(range[0]); if(pg) goToMushafPage(pg); }
+    }
+  });
 
   function renderEstimates(plan){
     const el = $('tk-estimates-body');
@@ -1399,7 +1514,7 @@ input:focus, select:focus{ outline:2px solid var(--palm); outline-offset:1px; }
       function listHTML(list, opts){
         opts = opts||{};
         if(list.length===0) return '<li class="tk-empty">'+(opts.empty||'Nothing here.')+'</li>';
-        return list.map(e=>{
+        return mergeForDisplay(list).map(e=>{
           return '<li><span class="tk-ref">'+refLabel(e)+'</span>'+
             (opts.repeatLabel ? '<span class="tk-repeat-x">'+opts.repeatLabel+'</span>' : '<span class="tk-meta">'+e.date+'</span>')+
             '</li>';
