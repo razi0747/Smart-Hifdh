@@ -111,23 +111,22 @@
   }
   function mushafOrder(a,b){ return a.surahNum-b.surahNum || a.ayahStart-b.ayahStart; }
 
-  // A deterministic 4½-year hifz journey, covering the Qur'an back-to-front.
-  // The varied attendance deliberately includes Ramadan pushes, travel, exams,
-  // illness, and ordinary missed days. Determinism keeps Reset to demo data
-  // stable while still avoiding a visible weekly or monthly pattern.
+  // A deterministic four-year hifz journey, covering the Qur'an back-to-front.
+  // It follows a steady weekly routine, with a few ordinary travel, exam, and
+  // illness breaks plus Ramadan pushes. Reset to demo data remains stable.
   function buildYearSample(){
     let seed = 0x5f3759df;
     const random = () => {
       seed = (seed * 1664525 + 1013904223) >>> 0;
       return seed / 4294967296;
     };
-    const duration = 1643; // 4.5 years, inclusive of natural breaks
+    const duration = 1461; // four years, inclusive of natural breaks
     const start = addDays(todayStr(), -(duration - 1));
     const finishOffset = duration - 8; // completed shortly before today
     const holidays = [
-      [119,133], [361,374], [642,658], [938,955], [1244,1260], // family travel / Eid
-      [278,287], [731,743], [1114,1124],                       // illness
-      [489,503], [1037,1051], [1451,1464]                      // exams / work deadlines
+      [141,148], [379,387], [742,750], [1102,1110], // travel / Eid visits
+      [268,274], [911,917],                          // illness
+      [525,533], [1278,1286]                         // exams / work deadlines
     ];
     // Ramadan starts represented across this rolling demo window (2022–2026).
     const ramadanStarts = ['2022-04-02','2023-03-23','2024-03-11','2025-03-01','2026-02-18'];
@@ -141,8 +140,9 @@
       if(isIn(day, holidays)) continue;
       const date = addDays(start, day);
       const ramadan = isRamadan(date);
-      // A normal week is intentionally irregular; Ramadan has longer streaks.
-      const chance = ramadan ? 0.82 : (day<190 ? 0.48 : day>1280 ? 0.46 : 0.42);
+      // A recognizable five-day routine, with natural lighter Fridays/Sundays.
+      const weekday = new Date(date+'T00:00:00').getDay();
+      const chance = ramadan ? 0.9 : [0.48,0.88,0.9,0.86,0.84,0.58,0.74][weekday];
       if(random() < chance) studyDays.push({day, date, ramadan});
     }
 
@@ -155,13 +155,16 @@
       const variation = session.ramadan
         ? (2 + Math.floor(random()*8))
         : [-5,-3,-2,-1,0,1,2,3,5][Math.floor(random()*9)];
-      // Most days are roughly ¼–1½ pages; occasional 1–3-ayah days and
-      // larger catch-up sessions are retained by the bounded variation.
+      // Most days are roughly ¼–1½ pages; occasional small or catch-up days
+      // provide variation without making the overall routine look erratic.
       const maximum = Math.min(25, remaining - sessionsLeft);
       let target = Math.round(average + variation);
       if(random() < 0.055) target = 1 + Math.floor(random()*3);
       if(!session.ramadan && random() < 0.035) target += 5 + Math.floor(random()*7);
       target = sessionsLeft===0 ? remaining : Math.max(1, Math.min(maximum, target));
+      // One entry is one contiguous portion: never start the next sūrah until
+      // the current one has been completed in an earlier entry.
+      target = Math.min(target, SURAHS[surahNum-1][1] - ayah + 1);
 
       while(target>0 && remaining>0){
         const surahAyat = SURAHS[surahNum-1][1];
