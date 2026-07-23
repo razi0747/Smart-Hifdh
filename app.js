@@ -111,30 +111,71 @@
   }
   function mushafOrder(a,b){ return a.surahNum-b.surahNum || a.ayahStart-b.ayahStart; }
 
-  // A five-year sample covering the complete Qur'an, back-to-front.
+  // A deterministic 4½-year hifz journey, covering the Qur'an back-to-front.
+  // The varied attendance deliberately includes Ramadan pushes, travel, exams,
+  // illness, and ordinary missed days. Determinism keeps Reset to demo data
+  // stable while still avoiding a visible weekly or monthly pattern.
   function buildYearSample(){
-    const ranges = [];
-    const addFull = (from, to) => { for(let n=from; n>=to; n--) ranges.push([n, 1, SURAHS[n-1][1]]); };
-    addFull(114, 1);
+    let seed = 0x5f3759df;
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const duration = 1643; // 4.5 years, inclusive of natural breaks
+    const start = addDays(todayStr(), -(duration - 1));
+    const finishOffset = duration - 8; // completed shortly before today
+    const holidays = [
+      [119,133], [361,374], [642,658], [938,955], [1244,1260], // family travel / Eid
+      [278,287], [731,743], [1114,1124],                       // illness
+      [489,503], [1037,1051], [1451,1464]                      // exams / work deadlines
+    ];
+    // Ramadan starts represented across this rolling demo window (2022–2026).
+    const ramadanStarts = ['2022-04-02','2023-03-23','2024-03-11','2025-03-01','2026-02-18'];
+    const isIn = (day, periods) => periods.some(([from,to]) => day>=from && day<=to);
+    const isRamadan = date => ramadanStarts.some(first => {
+      const distance = daysBetween(first, date);
+      return distance>=0 && distance<30;
+    });
+    const studyDays = [];
+    for(let day=0; day<=finishOffset; day++){
+      if(isIn(day, holidays)) continue;
+      const date = addDays(start, day);
+      const ramadan = isRamadan(date);
+      // A normal week is intentionally irregular; Ramadan has longer streaks.
+      const chance = ramadan ? 0.82 : (day<190 ? 0.48 : day>1280 ? 0.46 : 0.42);
+      if(random() < chance) studyDays.push({day, date, ramadan});
+    }
 
-    const totalAyat = ranges.reduce((sum, r) => sum + r[2] - r[1] + 1, 0);
-    const activeDays = [];
-    for(let day=0; day<1827; day++) if(day % 8 !== 6) activeDays.push(day);
     const entries = [];
-    let rangeIndex = 0, ayah = ranges[0][1], remaining = totalAyat;
-    const start = addDays(todayStr(), -1826);
-    activeDays.forEach((day, i) => {
-      if(remaining <= 0) return;
-      let target = Math.ceil(remaining / (activeDays.length - i));
-      while(target > 0 && rangeIndex < ranges.length){
-        const r = ranges[rangeIndex];
-        const endAyah = Math.min(r[2], ayah + target - 1);
-        const used = endAyah - ayah + 1;
-        entries.push({id:'year-demo-'+entries.length, date:addDays(start, day), surahNum:r[0], ayahStart:ayah, ayahEnd:endAyah, count:used});
-        remaining -= used;
-        target -= used;
-        ayah = endAyah + 1;
-        if(ayah > r[2] && ++rangeIndex < ranges.length) ayah = ranges[rangeIndex][1];
+    const totalAyat = SURAHS.reduce((sum, surah) => sum + surah[1], 0);
+    let surahNum = 114, ayah = 1, remaining = totalAyat;
+    studyDays.forEach((session, index) => {
+      const sessionsLeft = studyDays.length - index - 1;
+      const average = remaining / (sessionsLeft + 1);
+      const variation = session.ramadan
+        ? (2 + Math.floor(random()*8))
+        : [-5,-3,-2,-1,0,1,2,3,5][Math.floor(random()*9)];
+      // Most days are roughly ¼–1½ pages; occasional 1–3-ayah days and
+      // larger catch-up sessions are retained by the bounded variation.
+      const maximum = Math.min(25, remaining - sessionsLeft);
+      let target = Math.round(average + variation);
+      if(random() < 0.055) target = 1 + Math.floor(random()*3);
+      if(!session.ramadan && random() < 0.035) target += 5 + Math.floor(random()*7);
+      target = sessionsLeft===0 ? remaining : Math.max(1, Math.min(maximum, target));
+
+      while(target>0 && remaining>0){
+        const surahAyat = SURAHS[surahNum-1][1];
+        const ayahEnd = Math.min(surahAyat, ayah + target - 1);
+        const count = ayahEnd - ayah + 1;
+        entries.push({
+          id:'realistic-demo-'+entries.length,
+          date:session.date,
+          surahNum, ayahStart:ayah, ayahEnd, count
+        });
+        target -= count;
+        remaining -= count;
+        ayah = ayahEnd + 1;
+        if(ayah>surahAyat && surahNum>1){ surahNum--; ayah = 1; }
       }
     });
     return entries;
