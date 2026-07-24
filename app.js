@@ -579,18 +579,22 @@
   });
 
   async function loadEntries(){
+    let entriesLoadFailed = false;
     try{
       const res = await window.storage.get('tikrar-demo-entries', false);
       entries = res && res.value ? JSON.parse(res.value) : [];
     }catch(e){
       entries = [];
+      entriesLoadFailed = true;
     }
     let mode = '';
     try{
       const savedMode = await window.storage.get('tikrar-demo-mode', false);
       mode = savedMode && savedMode.value ? savedMode.value : '';
     }catch(e){}
-    if(entries.length===0 && mode!=='fresh'){
+    // Only seed/overwrite when we genuinely confirmed there's no saved data yet -
+    // never do this if the fetch itself failed, or a real save could get wiped.
+    if(entries.length===0 && mode!=='fresh' && !entriesLoadFailed){
       entries = DEMO_ENTRIES.slice();
       await saveEntries();
     }

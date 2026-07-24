@@ -75,9 +75,29 @@
     location.reload();
   });
 
-  function setupStorage() {
-    window.storage = {
-      get: async (key) => {
+  const saveStatusEl = document.getElementById('tk-save-status');
+  let saveStatusTimer = null;
+  function setSaveStatus(state) {
+    if (!saveStatusEl) return;
+    clearTimeout(saveStatusTimer);
+    saveStatusEl.classList.remove('ok', 'saving', 'error');
+    if (state === 'saving') {
+      saveStatusEl.textContent = 'Saving…';
+      saveStatusEl.classList.add('saving');
+    } else if (state === 'ok') {
+      saveStatusEl.textContent = 'Saved';
+      saveStatusEl.classList.add('ok');
+      saveStatusTimer = setTimeout(() => { saveStatusEl.textContent = ''; }, 2000);
+    } else if (state === 'error') {
+      saveStatusEl.textContent = '⚠ Not saved — check your connection';
+      saveStatusEl.classList.add('error');
+    }
+  }
+
+  async function getWithRetry(key, attempts) {
+    let lastErr;
+    for (let i = 0; i < attempts; i++) {
+      try {
         const { data, error } = await supabaseClient
           .from('tikrar_kv')
           .select('value')
@@ -85,17 +105,34 @@
           .maybeSingle();
         if (error) throw error;
         return { value: data ? data.value : null };
-      },
+      } catch (e) {
+        lastErr = e;
+        if (i < attempts - 1) await new Promise(r => setTimeout(r, 500));
+      }
+    }
+    throw lastErr;
+  }
+
+  function setupStorage() {
+    window.storage = {
+      get: (key) => getWithRetry(key, 3),
       set: async (key, value) => {
-        const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
-        if (userErr || !userData.user) throw userErr || new Error('Not signed in');
-        const { error } = await supabaseClient
-          .from('tikrar_kv')
-          .upsert(
-            { user_id: userData.user.id, key, value, updated_at: new Date().toISOString() },
-            { onConflict: 'user_id,key' }
-          );
-        if (error) throw error;
+        setSaveStatus('saving');
+        try {
+          const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
+          if (userErr || !userData.user) throw userErr || new Error('Not signed in');
+          const { error } = await supabaseClient
+            .from('tikrar_kv')
+            .upsert(
+              { user_id: userData.user.id, key, value, updated_at: new Date().toISOString() },
+              { onConflict: 'user_id,key' }
+            );
+          if (error) throw error;
+          setSaveStatus('ok');
+        } catch (e) {
+          setSaveStatus('error');
+          throw e;
+        }
       }
     };
   }

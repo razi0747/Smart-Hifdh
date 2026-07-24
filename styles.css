@@ -72,6 +72,10 @@ body{
   display:flex; align-items:center; justify-content:flex-end; gap:10px;
   font-size:12.5px; color: var(--ink-soft);
 }
+.tk-save-status{ font-size:12px; font-weight:600; }
+.tk-save-status.ok{ color: var(--palm-deep); }
+.tk-save-status.saving{ color: var(--ink-soft); }
+.tk-save-status.error{ color: var(--clay); }
 
 .tk-header{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; padding: 4px 2px 8px; border-bottom:1px solid var(--border); }
 .tk-header h1{ font-family: var(--font-serif); font-size:26px; margin:0; color:var(--palm-deep); font-weight:600; letter-spacing:.2px; }
