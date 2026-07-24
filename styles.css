@@ -41,6 +41,38 @@ body{
 
 .tk-wrap{ max-width: 1080px; margin:0 auto; display:flex; flex-direction:column; gap:16px; }
 
+/* ---- Auth overlay ---- */
+.tk-auth-overlay{
+  position:fixed; inset:0; z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--parchment);
+  padding:20px;
+}
+.tk-auth-card{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow: var(--shadow);
+  padding:28px 26px;
+  width:100%; max-width:360px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.tk-auth-brand{ font-family: var(--font-serif); font-size:22px; margin:0; color:var(--palm-deep); text-align:center; font-weight:600; }
+.tk-auth-brand .ar{ font-family: var(--font-quran); color:var(--gold); margin-inline-start:8px; }
+#tk-auth-title{ font-family: var(--font-serif); font-size:15px; margin:0 0 4px; text-align:center; color:var(--ink-soft); font-weight:600; }
+#tk-auth-form{ display:flex; flex-direction:column; gap:10px; }
+#tk-auth-form .tk-field{ display:flex; flex-direction:column; gap:4px; }
+#tk-auth-form label{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
+#tk-auth-form input{ width:100%; }
+#tk-auth-submit{ margin-top:4px; width:100%; }
+
+/* ---- Signed-in user bar ---- */
+.tk-user-bar{
+  max-width:1080px; margin:0 auto 6px; padding:0 2px;
+  display:flex; align-items:center; justify-content:flex-end; gap:10px;
+  font-size:12.5px; color: var(--ink-soft);
+}
+
 .tk-header{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; padding: 4px 2px 8px; border-bottom:1px solid var(--border); }
 .tk-header h1{ font-family: var(--font-serif); font-size:26px; margin:0; color:var(--palm-deep); font-weight:600; letter-spacing:.2px; }
 .tk-header h1 span.ar{ font-family: var(--font-quran); font-size:20px; color:var(--gold); margin-inline-start:10px; }

@@ -6,9 +6,38 @@
   <meta name="theme-color" content="#3f6b4c">
   <title>Tikrar - Hifdh Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 </head>
 <body>
-<div class="tk-wrap">
+
+<!-- Login / sign-up screen, shown until the user is authenticated -->
+<div class="tk-auth-overlay" id="tk-auth-overlay">
+  <div class="tk-auth-card">
+    <h1 class="tk-auth-brand">Tikrar <span class="ar">تكرار</span></h1>
+    <h2 id="tk-auth-title">Log in to Tikrar</h2>
+    <form id="tk-auth-form">
+      <div class="tk-field">
+        <label>Email</label>
+        <input type="email" id="tk-auth-email" required autocomplete="email">
+      </div>
+      <div class="tk-field">
+        <label>Password</label>
+        <input type="password" id="tk-auth-password" required autocomplete="current-password" minlength="6">
+      </div>
+      <div class="tk-error" id="tk-auth-error"></div>
+      <button type="submit" class="tk-btn" id="tk-auth-submit">Log in</button>
+    </form>
+    <button type="button" class="tk-btn secondary" id="tk-auth-toggle">New here? Create an account</button>
+  </div>
+</div>
+
+<!-- Signed-in user bar -->
+<div class="tk-user-bar" id="tk-user-bar" style="display:none;">
+  <span id="tk-user-email"></span>
+  <button class="tk-btn secondary" id="tk-logout-btn">Log out</button>
+</div>
+
+<div class="tk-wrap" id="tk-app" style="display:none;">
 
   <div class="tk-header">
     <h1>Tikrar <span class="ar">تكرار</span></h1>
@@ -224,7 +253,7 @@
 </div>
 
 
-<script src="app.js" defer></script>
+<script src="auth.js" defer></script>
 </body>
 </html>
 

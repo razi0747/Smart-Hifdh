@@ -1,0 +1,139 @@
+(function () {
+
+  // ------------------------------------------------------------------
+  // 1) PASTE YOUR SUPABASE PROJECT DETAILS HERE
+  //    (Project Settings -> API in your Supabase dashboard)
+  // ------------------------------------------------------------------
+  const SUPABASE_URL = "YOUR_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+  // ------------------------------------------------------------------
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const overlay = document.getElementById('tk-auth-overlay');
+  const appEl = document.getElementById('tk-app');
+  const userBar = document.getElementById('tk-user-bar');
+  const userEmailEl = document.getElementById('tk-user-email');
+
+  const form = document.getElementById('tk-auth-form');
+  const emailInput = document.getElementById('tk-auth-email');
+  const passInput = document.getElementById('tk-auth-password');
+  const errorEl = document.getElementById('tk-auth-error');
+  const submitBtn = document.getElementById('tk-auth-submit');
+  const toggleBtn = document.getElementById('tk-auth-toggle');
+  const titleEl = document.getElementById('tk-auth-title');
+  const logoutBtn = document.getElementById('tk-logout-btn');
+
+  let mode = 'signin';
+  let appLoaded = false;
+
+  function setMode(next) {
+    mode = next;
+    errorEl.style.display = 'none';
+    if (mode === 'signin') {
+      titleEl.textContent = 'Log in to Tikrar';
+      submitBtn.textContent = 'Log in';
+      toggleBtn.textContent = 'New here? Create an account';
+      passInput.setAttribute('autocomplete', 'current-password');
+    } else {
+      titleEl.textContent = 'Create your Tikrar account';
+      submitBtn.textContent = 'Sign up';
+      toggleBtn.textContent = 'Already have an account? Log in';
+      passInput.setAttribute('autocomplete', 'new-password');
+    }
+  }
+  toggleBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+    try {
+      if (mode === 'signin') {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) throw error;
+        if (!data.session) {
+          errorEl.textContent = 'Account created. Check your email to confirm it, then log in.';
+          errorEl.style.display = 'block';
+          setMode('signin');
+        }
+      }
+    } catch (e) {
+      errorEl.textContent = e.message || 'Something went wrong.';
+      errorEl.style.display = 'block';
+    }
+    submitBtn.disabled = false;
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  });
+
+  function setupStorage() {
+    window.storage = {
+      get: async (key) => {
+        const { data, error } = await supabaseClient
+          .from('tikrar_kv')
+          .select('value')
+          .eq('key', key)
+          .maybeSingle();
+        if (error) throw error;
+        return { value: data ? data.value : null };
+      },
+      set: async (key, value) => {
+        const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
+        if (userErr || !userData.user) throw userErr || new Error('Not signed in');
+        const { error } = await supabaseClient
+          .from('tikrar_kv')
+          .upsert(
+            { user_id: userData.user.id, key, value, updated_at: new Date().toISOString() },
+            { onConflict: 'user_id,key' }
+          );
+        if (error) throw error;
+      }
+    };
+  }
+
+  function showApp(user) {
+    overlay.style.display = 'none';
+    appEl.style.display = '';
+    userBar.style.display = 'flex';
+    userEmailEl.textContent = user.email;
+    if (!appLoaded) {
+      appLoaded = true;
+      setupStorage();
+      const s = document.createElement('script');
+      s.src = 'app.js';
+      document.body.appendChild(s);
+    }
+  }
+
+  function showLogin() {
+    overlay.style.display = 'flex';
+    appEl.style.display = 'none';
+    userBar.style.display = 'none';
+  }
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (session && session.user) {
+      showApp(session.user);
+    } else {
+      showLogin();
+    }
+  });
+
+  supabaseClient.auth.getSession().then(({ data }) => {
+    if (data.session && data.session.user) {
+      showApp(data.session.user);
+    } else {
+      showLogin();
+    }
+  });
+
+})();
