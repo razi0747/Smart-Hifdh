@@ -1,5 +1,18 @@
 (function () {
 
+  // Fix-up: earlier attempts could leave a corrupted URL like
+  // "...#access_token=...#access_token=..." in the address bar.
+  // If we see more than one '#', keep only the last (most recent) fragment
+  // so Supabase can actually read the session out of it.
+  (function cleanCorruptedHash() {
+    const raw = window.location.hash;
+    if (raw && raw.indexOf('#', 1) !== -1) {
+      const parts = raw.split('#').filter(Boolean);
+      const last = parts[parts.length - 1];
+      history.replaceState(null, '', window.location.pathname + window.location.search + '#' + last);
+    }
+  })();
+
   // ------------------------------------------------------------------
   // 1) PASTE YOUR SUPABASE PROJECT DETAILS HERE
   //    (Project Settings -> API in your Supabase dashboard)
@@ -80,7 +93,7 @@
     errorEl.style.display = 'none';
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href }
+      options: { redirectTo: window.location.origin + window.location.pathname }
     });
     if (error) {
       errorEl.textContent = error.message || 'Could not start Google sign-in.';
