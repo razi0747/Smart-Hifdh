@@ -65,6 +65,13 @@ body{
 #tk-auth-form label{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
 #tk-auth-form input{ width:100%; }
 #tk-auth-submit{ margin-top:4px; width:100%; }
+.tk-auth-divider{ display:flex; align-items:center; gap:10px; color:var(--ink-soft); font-size:11.5px; margin:2px 0; }
+.tk-auth-divider::before, .tk-auth-divider::after{ content:''; flex:1; height:1px; background:var(--border); }
+.tk-btn.google{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:#fff; color:#3c4043; border:1px solid var(--border);
+}
+.tk-btn.google:hover{ background:#f7f7f7; }
 
 /* ---- Signed-in user bar ---- */
 .tk-user-bar{

@@ -75,6 +75,19 @@
     location.reload();
   });
 
+  const googleBtn = document.getElementById('tk-google-btn');
+  googleBtn.addEventListener('click', async () => {
+    errorEl.style.display = 'none';
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href }
+    });
+    if (error) {
+      errorEl.textContent = error.message || 'Could not start Google sign-in.';
+      errorEl.style.display = 'block';
+    }
+  });
+
   const saveStatusEl = document.getElementById('tk-save-status');
   let saveStatusTimer = null;
   function setSaveStatus(state) {
