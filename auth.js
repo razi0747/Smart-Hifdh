@@ -4,8 +4,8 @@
   // 1) PASTE YOUR SUPABASE PROJECT DETAILS HERE
   //    (Project Settings -> API in your Supabase dashboard)
   // ------------------------------------------------------------------
-  const SUPABASE_URL = "YOUR_SUPABASE_URL";
-  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+  const SUPABASE_URL = "https://epwjievvtjvdhdxzfjui.supabase.co/rest/v1/";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwd2ppZXZ2dGp2ZGhkeHpmanVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NTg0NjIsImV4cCI6MjEwMDQzNDQ2Mn0.YL_iJjhcarQso-DGCuLjQVC0zNYZrLnEZ-9gNcuqVI8";
   // ------------------------------------------------------------------
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
